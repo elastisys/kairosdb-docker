@@ -39,3 +39,21 @@ KairosDB. For example, you can set a replication strategy that suits your
 Cassandra cluster via the `CASSANDRA_REPLICATION` environment variable (defaults
 to `{'class': 'SimpleStrategy','replication_factor' : 1}`). Refer to the
 [entrypoint.py](entrypoint.py) code for details.
+
+
+### Trying it out
+The [example](example) directory contains a
+[docker-compose.yml](example/docker-compose.yml) file which starts Docker
+containers with Grafana (with the KairosDB datasoure plugin installed), KairosDB
+and Cassandra.
+
+    cd example/
+    docker-compose up
+
+Add a `kairosdb` datasource (URL: `http://kairosdb:8080`) and you should be
+ready to add graphs plotting KairosDB metrics.
+
+To insert some dummy metrics, you can make use of the provided
+[example/ingest.py](example/ingest.py) script.
+
+    ./example/ingest.py 2018-01-01 2018-01-05

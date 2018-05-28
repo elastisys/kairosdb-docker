@@ -1,0 +1,61 @@
+version: "2"
+
+# set up a network local to the host to which we'll attach
+# the containers. this means that the containers will be
+# on the same network and will be able to communicate and
+# lookup each other in DNS.
+networks:
+  cass_net:
+    driver: bridge
+
+services:
+  grafana:
+    image: grafana/grafana:5.1.3
+    # first install kairosdb datasource plugin, then run grafana
+    entrypoint: /bin/sh
+    command: ["-c", "grafana-cli plugins install grafana-kairosdb-datasource && /run.sh"]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - cass_net
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+
+  kairosdb:
+    image: elastisys/kairosdb:1.2.1
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - cass_net
+    environment:      
+      - CASSANDRA_HOSTS=cassandra
+      - CASSANDRA_PORT=9042
+
+  cassandra:
+    image: cassandra:3.11
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "1"
+    restart: always
+    ports:
+      - "9042:9042"
+    volumes:
+      - ${PWD}/cassandra-data:/var/lib/cassandra
+    networks:
+      - cass_net
+    environment:
+      - CASSANDRA_CLUSTER_NAME=test-cluster
